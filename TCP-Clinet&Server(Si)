@@ -1,0 +1,45 @@
+import socket
+import threading
+
+# Server function
+def server():
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_socket.bind(("127.0.0.1", 12345))  # Bind to localhost and port 12345
+    server_socket.listen(1)  # Listen for 1 connection
+
+    print("Server is listening...")
+    conn, addr = server_socket.accept()
+    print(f"Connection established with {addr}")
+
+    while True:
+        data = conn.recv(1024).decode()
+        if not data:
+            break
+        print(f"Received from client: {data}")
+        conn.send(f"Echo: {data}".encode())  # Send response back
+
+    conn.close()
+    server_socket.close()
+
+# Client function
+def client():
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client_socket.connect(("127.0.0.1", 12345))  # Connect to the server
+
+    for i in range(5):
+        msg = f"Hello {i}"
+        client_socket.send(msg.encode())
+        response = client_socket.recv(1024).decode()
+        print(f"Received from server: {response}")
+
+    client_socket.close()
+
+# Run both server and client in separate threads
+server_thread = threading.Thread(target=server)
+server_thread.start()
+
+client_thread = threading.Thread(target=client)
+client_thread.start()
+
+server_thread.join()
+client_thread.join()
